@@ -20,11 +20,11 @@
 #define 	MYSQL_DB		"deathmatch"
 
 /* Dialogs */
-#define 	DIALOG_CONTROL_GPS 	0
-#define 	DIALOG_ADD_GLOC    	1
-#define 	DIALOG_DEL_GLOC    	2
-#define     DIALOG_TP_GLOC     	3
-#define     DIALOG_GPS_LOC     	4
+#define 	DIALOG_CONTROL_GPS 	100
+#define 	DIALOG_ADD_GLOC    	101
+#define 	DIALOG_DEL_GLOC    	102
+#define     DIALOG_TP_GLOC     	103
+#define     DIALOG_GPS_LOC     	104
 
 /* Database */
 new MySQL: GPSDB;
@@ -165,8 +165,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		if(response)
 		{
 		    gInfo[playerid][LocName] = strlen(inputtext);
-			if(strlen(gInfo[playerid][LocName]) < 3 || strlen(gInfo[playerid][LocName]) > 100) return ShowPlayerDialog(playerid, DIALOG_ADD_GLOC, DIALOG_STYLE_INPUT, "Add GPS Location", "Please enter the location name to add it in /gps.\n\nError: Location name should be between 3 - 100 characters.", "Add", "Cancel");
-
 			gInfo[playerid][Interior] = GetPlayerInterior(playerid);
 			GetPlayerPos(playerid, gInfo[playerid][Pos][0], gInfo[playerid][Pos][1], gInfo[playerid][Pos][2]);
 			mysql_format(GPSDB, Query, sizeof(Query), "SELECT * FROM `gpsdb` WHERE `LocationName` = '%s'", gInfo[playerid][LocName]);
