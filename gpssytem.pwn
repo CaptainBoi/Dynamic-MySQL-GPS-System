@@ -58,10 +58,10 @@ public OnFilterScriptInit()
 	
 	mysql_query(GPSDB, "CREATE TABLE IF NOT EXISTS `gpsdb` (\
 	`S.No` INTEGER PRIMARY KEY AUTO_INCREMENT,\
-	`LocationName` VARCHAR(100) NOT NULL, \
-	`PositionX` FLOAT DEFAULT 0, \
-	`PositionY` FLOAT DEFAULT 0, \
-	`PositionZ` FLOAT DEFAULT 0, \
+	`LocationName` VARCHAR(100) NOT NULL,\
+	`PositionX` FLOAT DEFAULT 0,\
+	`PositionY` FLOAT DEFAULT 0,\
+	`PositionZ` FLOAT DEFAULT 0,\
 	`InteriorID` INT)", false);
 	return 1;
 }
@@ -113,7 +113,7 @@ CMD:gps(playerid,params[])
 		cache_get_value_name_float(i, "PositionX", gInfo[playerid][Pos][0]);
 		cache_get_value_name_float(i, "PositionY", gInfo[playerid][Pos][1]);
 		cache_get_value_name_float(i, "PositionZ", gInfo[playerid][Pos][2]);
-		format(string, sizeof(string), "S.No\tLocation Name\tCreated By\n");
+		format(string, sizeof(string), "S.No\tLocation Name\n");
 		format(string2, sizeof(string2), "%s\n%d\t%s\n", string, i, gInfo[playerid][LocName]);
 	}
 	
@@ -141,17 +141,17 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			if(listitem == 0)
 			{
 				SendClientMessage(playerid, 0xFFFF00FF, "Please enter the location name to add it in /gps.");
-				ShowPlayerDialog(playerid, 101, DIALOG_STYLE_INPUT, "Add GPS Location", "Please enter the location name to add it in /gps.", "Add", "Cancel");
+				ShowPlayerDialog(playerid, DIALOG_ADD_GLOC, DIALOG_STYLE_INPUT, "Add GPS Location", "Please enter the location name to add it in /gps.", "Add", "Cancel");
 			}
 			if(listitem == 1)
 			{
 				SendClientMessage(playerid, 0xFFFF00FF, "Please enter the location name to remove/delete the location in /gps.");
-				ShowPlayerDialog(playerid, 102, DIALOG_STYLE_INPUT, "Delete GPS Location", "Please enter the location name to remove/delete the location in /gps.", "Delete", "Cancel");
+				ShowPlayerDialog(playerid, DIALOG_DEL_GLOC, DIALOG_STYLE_INPUT, "Delete GPS Location", "Please enter the location name to remove/delete the location in /gps.", "Delete", "Cancel");
 			}
 			if(listitem == 2)
 			{
 			    SendClientMessage(playerid, 0xFFFF00FF, "Please enter the location name to teleport through /gps location.");
-				ShowPlayerDialog(playerid, 103, DIALOG_STYLE_INPUT, "Teleport GPS Location", "Please enter the location name to teleport through /gps location.", "Teleport", "Cancel");
+				ShowPlayerDialog(playerid, DIALOG_TP_GLOC, DIALOG_STYLE_INPUT, "Teleport GPS Location", "Please enter the location name to teleport through /gps location.", "Teleport", "Cancel");
 			}
 			if(listitem == 3)
 			{
@@ -164,17 +164,16 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	{
 		if(response)
 		{
-		    gInfo[playerid][LocName] = strlen(inputtext);
 			gInfo[playerid][Interior] = GetPlayerInterior(playerid);
 			GetPlayerPos(playerid, gInfo[playerid][Pos][0], gInfo[playerid][Pos][1], gInfo[playerid][Pos][2]);
-			mysql_format(GPSDB, Query, sizeof(Query), "SELECT * FROM `gpsdb` WHERE `LocationName` = '%s'", gInfo[playerid][LocName]);
+			mysql_format(GPSDB, Query, sizeof(Query), "SELECT * FROM `gpsdb` WHERE `LocationName` = '%s'", inputtext);
 			new Cache:result = mysql_query(GPSDB, Query, true);
 			
 			if(cache_num_rows()) return SendClientMessage(playerid, 0xFF0000FF, "Error: That location name is already added.");
-			mysql_format(GPSDB, Query2, sizeof(Query2), "INSERT INTO `gpsdb` (`LocationName`, `PositionX` , `PositionY` , `PositionZ`, `InteriorID`) VALUES ('%e', '%f', '%f', '%f', '%d')", gInfo[playerid][LocName], gInfo[playerid][Pos][0], gInfo[playerid][Pos][1], gInfo[playerid][Pos][2], gInfo[playerid][Interior]);
+			mysql_format(GPSDB, Query2, sizeof(Query2), "INSERT INTO `gpsdb` (`LocationName`, `PositionX` , `PositionY` , `PositionZ`, `InteriorID`) VALUES ('%e', '%f', '%f', '%f', '%d')", inputtext, gInfo[playerid][Pos][0], gInfo[playerid][Pos][1], gInfo[playerid][Pos][2], gInfo[playerid][Interior]);
 			mysql_query(GPSDB, Query2, false);
 			
-			format(string, sizeof(string), "You have added location: %s in /gps.", gInfo[playerid][LocName]);
+			format(string, sizeof(string), "You have added location: %s in /gps.", inputtext);
 			SendClientMessage(playerid, 0xFFFF00FF, string);
 			cache_delete(result);
 		}
@@ -184,11 +183,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	{
 		if(response)
 		{
-		    gInfo[playerid][LocName] = strlen(inputtext);
-			mysql_format(GPSDB, Query, sizeof(Query),"DELETE FROM `gpsdb` WHERE `LocationName` = '%s'", gInfo[playerid][LocName]);
+			mysql_format(GPSDB, Query, sizeof(Query),"DELETE FROM `gpsdb` WHERE `LocationName` = '%s'", inputtext);
 			mysql_query(GPSDB, Query, false);
 			
-			format(string, sizeof(string), "You have removed gps location: {F3FF02}%s", gInfo[playerid][LocName]);
+			format(string, sizeof(string), "You have removed gps location: {F3FF02}%s", inputtext);
 			SendClientMessage(playerid, 0xFFFF00FF, string);
 		}
 		return 1;
@@ -197,8 +195,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	{
 		if(response)
 		{
-		    gInfo[playerid][LocName] = strlen(inputtext);
-			mysql_format(GPSDB, Query, sizeof(Query), "SELECT * FROM `gpsdb` WHERE `LocationName` = '%s'", gInfo[playerid][LocName]);
+			mysql_format(GPSDB, Query, sizeof(Query), "SELECT * FROM `gpsdb` WHERE `LocationName` = '%s'", inputtext);
 			new Cache:result = mysql_query(GPSDB, Query, true);
 			if(cache_num_rows())
 			{
@@ -227,7 +224,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			GPSMarker[playerid] = CreateDynamicMapIcon(gInfo[listitem][Pos][0], gInfo[listitem][Pos][1], gInfo[listitem][Pos][2], 41, 0, -1, -1, playerid, 100000.0);
 			Streamer_SetIntData(STREAMER_TYPE_MAP_ICON, GPSMarker[playerid], E_STREAMER_STYLE, MAPICON_GLOBAL);
 			Streamer_Update(playerid);
-			format(string, sizeof(string), "The location: %s, has been marked on your mini-map.", gInfo[playerid][LocName]);
+			format(string, sizeof(string), "The location: %s, has been marked on your mini-map.", inputtext);
 			SendClientMessage(playerid, 0xFFFF00FF, string);
 		}
 		return 1;
